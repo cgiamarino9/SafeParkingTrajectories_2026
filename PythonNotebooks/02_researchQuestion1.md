@@ -1,5 +1,5 @@
 # Research Question 1: 
-### How do Safe Parking Program (SPP) and non-SPP client characteristics differ? How did these characteristics shift after the CoC funding scandals and SPP expansions since 2022?
+## How do Safe Parking Program (SPP) and non-SPP client characteristics differ? How did these characteristics shift after the CoC funding scandals and SPP expansions since 2022?
 
 Policy context: Mayor Bass is elected in 2022. More investments in Safe Parking and Inside Safe. Scandals and defunding follow.
 

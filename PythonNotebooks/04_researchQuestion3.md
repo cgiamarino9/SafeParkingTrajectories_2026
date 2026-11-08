@@ -1,4 +1,4 @@
-# Research Question 3
+# Research Question 3:
 ## Reevaluation and Recidivism
 How effectively do SPPs prevent returns to homelessness compared to non-SPPs? How can metrics be recategorized to appropriately evaluate homelessness exits from SPPs?
 

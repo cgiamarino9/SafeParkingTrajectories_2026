@@ -1,5 +1,5 @@
 # Part 1: Data wrangling notebook 
-## This notebook imported the final csv and output dataframes for the research questions
+## This notebook imported the final csv and output dataframes for the three research questions.
 
 # This is the final notebook to produce graphics and statistics for my SPP paper
 ## The first few code cells will be to bring in the cleaned and merged CSV.

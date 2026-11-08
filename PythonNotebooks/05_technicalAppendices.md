@@ -1,7 +1,7 @@
 # Technical Appendices
 ## Tables for Supplementary Data
 
-## Technical Appendix I: Full diagnostics 
+### Technical Appendix I: Full diagnostics 
 
 
 
@@ -109,7 +109,7 @@ print(
 )
 ```
 
-# Technical Appendix I: Multivariable Logistic Regression
+## Technical Appendix I: Multivariable Logistic Regression
 ### Determinants of Safe Parking Program (SPP) Entry (All First-Time Enrollees, 2017-2025)
 
 | Variable Label                          |   Coeff (β) |    aOR | 95% CI         |   p-value | Sig   |   VIF |
@@ -245,7 +245,7 @@ print(
 )
 ```
 
-# Technical Appendix II: Prior & Exit Location Distributions
+## Technical Appendix II: Prior & Exit Location Distributions
 ### Unadjusted Baseline Comparisons Across First-Time and Repeat Client Cohorts
 
 | Category / Location          | SPP (Non-Repeat)   | Non-SPP (Non-Repeat)   | p-value (Non-Repeat)   | SPP (Repeat)   | Non-SPP (Repeat)   | p-value (Repeat)   |
@@ -761,7 +761,7 @@ for col in CONTROL_LIST + ["SPP", "Exit_Permanent"]:
             print(f"Zero variance detected: '{col}' has only {n_unq} value(s)!")
 ```
 
-# Technical Appendix III: Generalized Estimating Equations (GEE) Exit Odds
+## Technical Appendix III: Generalized Estimating Equations (GEE) Exit Odds
 
 **Specification:** Binomial GEE Logit | **Working Correlation:** Robust Cluster-Sandwich | **Reference Year:** 2017 | **Clustering:** `ProjectID`
 
