@@ -30,6 +30,9 @@ import statsmodels.api as sm # Logit and GLM
 import statsmodels.formula.api as smf # OLS/GLM
 from patsy import dmatrices # describe for technical appendices
 from statsmodels.stats.outliers_influence import variance_inflation_factor # check multicollinearity
+from drdid.drdid import drdid_panel, drdid_rc # doubly robust DID
+from drdid.ipwd_did improt std_ipw_did_panel, std_ipw_did_rc # inverse probability weighted DID
+from drdid.reg_did improt reg_did_panel, reg_did_rc # outcome regression DID
 
 ```
 
