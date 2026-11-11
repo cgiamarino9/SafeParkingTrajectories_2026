@@ -1,6 +1,6 @@
 ## Technical Appendix VII: Doubly Robust Difference-in-Differences (DR DID) Results Matrix
 ### Sant'Anna & Zhao's (2020) Doubly Robust Difference-in-DIfferences (DR DID) estimator 
-This appendix validates teh LPM findings. It combines inverse probability weighting (IPW) aka propensity scores with outcome regression (OR). It produces consistent, efficient treatment effects even if the propensity score model or the outcome regression model is mis-specified. Here is a [link](https://doi.org/10.1016/j.jeconom.2020.06.003) to the article. 
+This appendix validates the LPM DID findings. It combines inverse probability weighting (IPW) aka propensity scores with outcome regression (OR). It produces consistent, efficient treatment effects even if the propensity score model or the outcome regression model is mis-specified. Here is a [link](https://doi.org/10.1016/j.jeconom.2020.06.003) to the article. 
 
 | Participant Cohort Sample | Econometric Model Specification | Complete Case N | Treatment Estimand ($\hat{\tau}_{\text{DR}}$) | Standard Error (SE) | $z$-Statistic | $p$-Value | 95% Confidence Interval |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
