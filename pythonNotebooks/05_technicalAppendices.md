@@ -1484,4 +1484,158 @@ def run_appendix_vi_event_study(df_first_clean, df_repeat_clean):
 app6_results = run_appendix_vi_event_study(df_first_clean, df_repeat_clean)
 ```
 
+## Technical Appendix VII
+### Sant'Anna & Zhao's (2020) Doubly Robust Difference-in-DIfferences (DR DID) estimator 
+This appendix validates teh LPM findings. It combines inverse probability weighting (IPW) aka propensity scores with outcome regression (OR). It produces consistent, efficient treatment effects even if the propensity score model or the outcome regression model is mis-specified. Here is a [link](https://doi.org/10.1016/j.jeconom.2020.06.003) to the article. 
+
+```python
+# verify and re-import libraries
+import os
+import numpy as np
+import pandas as pd
+from scipy.stats import norm
+
+# Import Sant'Anna & Zhao (2020) Estimator
+from drdid.drdid import drdid_rc
+
+# Set random seed for reproducibility
+np.random.seed(42)
+
+# variables from LPM DID in research question 2
+covariates = [
+    "Woman",
+    "LGBTQ",
+    "Family",
+    # "SingleParentWChild", # Excluded due to model specification
+    "VeteranStatus",
+    # "White",              # Omitted baseline demographic category
+    "BlackAfAmerican",
+    "Age",
+    "Employed_Entry",
+    "ChronicHomelessness",
+    "DVSurvivor_Entry",
+    "DisablingCondition",
+    "UnableToWork_Entry",
+    "Prior_Unsheltered",
+    "received_service_housing_financial",
+    "received_service_jobs_employment",
+    "DaysEnrolled",
+    "Earned_Entry",
+]
+
+# check variances so DR DID runs
+print("Sub-Group Variance Diagnostics")
+subgroups_stds = df_first_clean.groupby(["Post2022", "SPP"])[
+    covariates
+].std()
+zero_in_subgroup = subgroups_stds.loc[:, (subgroups_stds == 0).any()]
+
+if not zero_in_subgroup.empty:
+    print("Covariates with zero variance within specific DiD sub-groups:")
+    print(zero_in_subgroup)
+else:
+    print("All covariates have non-zero variance across all 4 sub-groups.")
+```
+
+The column `received_service_jobs_employment` was 0 for SPP == 1 and Post2022 ==1. Ignored this in the model. 
+
+```python
+def estimate_drdid_rc(df, covariates, cohort_name="First-Time"):
+    """
+    Executes Sant'Anna & Zhao (2020) DR-DiD estimator for repeated cross-sections.
+    """
+    # Filter complete cases across outcome, policy indicators, and covariates
+    model_cols = ["Exit_Permanent", "Post2022", "SPP"] + covariates
+    clean_df = df[model_cols].dropna().copy()
+
+    # Extract NumPy vectors/matrices required by drdid_rc
+    y = clean_df["Exit_Permanent"].values.astype(float)   # Outcome Y (1=Permanent, 0=Other)
+    post = clean_df["Post2022"].values.astype(int)        # Period T (0=Pre-2022, 1=Post-2022)
+    spp = clean_df["SPP"].values.astype(int)            # Treatment Group D (0=Shelter, 1=SPP)
+    X = clean_df[covariates].values.astype(float)         # Covariate Design Matrix X
+
+    # Fit Sant'Anna & Zhao (2020) Doubly Robust DR-DiD Estimator
+    # Note: Keyword argument 'D' specifies treatment indicator array for drdid_rc
+    att, influence = drdid_rc(
+        y=y, post=post, D=spp, covariates=X, trim_level=0.995
+    )
+
+    # Compute analytical Standard Error from influence function
+    se = np.linalg.norm(influence - influence.mean()) / len(influence)
+    z_stat = att / se
+    p_val = 2 * (1 - norm.cdf(abs(z_stat)))
+    ci_lower = att - (1.96 * se)
+    ci_upper = att + (1.96 * se)
+
+    # Format result dictionary
+    res = {
+        "Cohort": cohort_name,
+        "N": len(clean_df),
+        "ATT_DR": att,
+        "ATT_DR_pp": att * 100,        # Convert to percentage points
+        "SE": se,
+        "SE_pp": se * 100,
+        "Z": z_stat,
+        "P_Value": p_val,
+        "CI_Lower_pp": ci_lower * 100,
+        "CI_Upper_pp": ci_upper * 100,
+        "CI_95": f"[{ci_lower*100:.2f}pp, {ci_upper*100:.2f}pp]",
+        "Sig": "**" if p_val < 0.01 else ("*" if p_val < 0.05 else ""),
+    }
+
+    print(
+        f"[{cohort_name} DR-DiD] ATT: {att*100:+.2f} percentage points | "
+        f"SE: {se*100:.2f}pp | z = {z_stat:.3f} | p = {p_val:.4f} {res['Sig']}"
+    )
+
+    return res, clean_df
+
+
+# run cross-section and panel cohorts
+
+# first-time cohort (df_first_clean)
+# ignore 'received_service_jobs_employment' due to zero variance in (Post=1, SPP=1)
+covariates_first = [
+    c for c in covariates if c != "received_service_jobs_employment"
+]
+
+res_first, df_first_dr = estimate_drdid_rc(
+    df_first_clean, covariates_first, cohort_name="First-Time Cohort"
+)
+
+# repeat cohort (df_repeat_clean)
+# Include 'Total_Lifetime_Enrollments' for repeat cohort sample
+repeat_covariates = covariates + ["Total_Lifetime_Enrollments"]
+
+res_repeat, df_repeat_dr = estimate_drdid_rc(
+    df_repeat_clean, repeat_covariates, cohort_name="Repeat Cohort"
+)
+```
+
+```python
+# create dataframe from DR DID
+results_list = [res_first, res_repeat]
+df_results_summary = pd.DataFrame(results_list)
+
+# Format manuscript Markdown table string; edit in markdown for journal article
+table_md = f"""## Technical Appendix VII: Doubly Robust Difference-in-Differences (DR-DiD) Results Matrix
+
+| Participant Cohort Sample | Econometric Model Specification | Complete Case N | Treatment Estimand ($\hat{{\\tau}}_{{\\text{{DR}}}}$) | Standard Error (SE) | $z$-Statistic | $p$-Value | 95% Confidence Interval |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| *First-Time Cohort* (`df_first_clean`) | DR DID | {res_first['N']:,} | **{res_first['ATT_DR_pp']:+.2f} pp{res_first['Sig']}** | {res_first['SE_pp']:.2f} pp | {res_first['Z']:.3f} | {res_first['P_Value']:.4f} | {res_first['CI_95']} |
+| *Repeat Cohort* (`df_repeat_clean`) | DR DID | {res_repeat['N']:,} | **{res_repeat['ATT_DR_pp']:+.2f} pp{res_repeat['Sig']}** | {res_repeat['SE_pp']:.2f} pp | {res_repeat['Z']:.3f} | {res_repeat['P_Value']:.4f} | {res_repeat['CI_95']} |
+
+*Note*: ** p < 0.01, * p < 0.05. Standard errors are analytically computed with the influence function. Propensity scores are estimated via inverse probability tilting trimmed at the 99.5th percentile. `received_service_jobs_employment` was excluded from the first-time cohort due to zero within-cell variance in the Post-2022 Safe Parking interaction (Post2022=1, SPP=1).
+"""
+
+# Print formatted table to notebook output
+print(table_md)
+
+# export markdown
+output_filepath = "VII_Appendix_DR_DID.md"
+with open(output_filepath, "w") as f:
+    f.write(table_md)
+
+print(f"\n[Success] Exported Appendix VII results matrix to '{output_filepath}'.")
+```
 ## Study complete! (Maybe!)
